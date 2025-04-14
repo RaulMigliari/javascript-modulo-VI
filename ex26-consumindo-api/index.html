@@ -1,52 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exercício 26 - Consumindo uma API</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="index.css">
+  <title>Minhas Finanças</title>
 </head>
 <body>
-    <main style="display: flex; gap: 4rem; margin: 1rem 2rem;">
-        <form>
-            <h2>Nova transação:</h2>
+  <h1>Minhas Finanças</h1>
+  <main>
+    <form>
+      <h2>Nova Transação</h2>
+      <input type="hidden" id="id" name="id">
+      <label for="name">Nome:</label>
+      <input type="text" id="name" name="name">
+      <label for="amount">Valor:</label>
+      <input type="number" step="0.01" id="amount" name="amount">
+      <br><br>
+      <button>Salvar</button>
+    </form>
+    <div>
+      <h2>Saldo: <span id="balance"></span></h2>
+      <h2>Histórico de Transações</h2>
+      <section id="transactions"></section>
+    </div>
+  </main>
 
-            <label for="name">Nome:</label>
-            <input type="text" id="name" name="name">
-            <br>
-
-            <label for="value">Valor:</label>
-            <input type="number" id="value" name="value">
-            <br>
-
-            <button>Enviar</button>
-        </form>
-
-        <div>
-            <h2>Atualizar transações</h2>
-            <form>
-                <label for="name">Nome:</label>
-                <input type="text" id="name" name="name">
-                <br>
-    
-                <label for="value">Valor:</label>
-                <input type="number" id="value" name="value">
-                <br>
-    
-                <button>Enviar</button>
-            </form>
-        </div>
-
-        <div>
-            <h2>Transações</h2>
-            <section id="transactions"></section>
-        </div>
-
-        <div>
-            <h2>Saldo total</h2>
-            <section id="totalBalance"></section>
-        </div>
-    </main>
-
-    <script src="index.js"></script>
+  <script src="index.js"></script>
 </body>
 </html>

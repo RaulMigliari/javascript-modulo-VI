@@ -1,45 +1,145 @@
-function renderTranstion(transactionData) {
-    const transaction = document.createElement('div')
-    transaction.id = `transaction-${transactionData.id}`
+let transactions = []
 
-    const name = document.createElement('h3')
-    name.textContent = transactionData.name
-
-    const value = document.createElement('div')
-    value.textContent = transactionData.value
-
-    transaction.append(name, value)
-    document.querySelector('#transactions').append(transaction)
+function createTransactionContainer(id) {
+    const container = document.createElement('div')
+    container.classList.add('transaction')
+    container.id = `transaction-${id}`
+    return container
 }
 
-async function getTransactions() {
-    const transactions = await fetch('http://localhost:3000/transactions').then(res => res.json())
-    transactions.forEach(renderTranstion)
+function createTransactionTitle(name) {
+    const title = document.createElement('span')
+    title.classList.add('transaction-title')
+    title.textContent = name
+    return title
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    getTransactions()
-})
+function createTransactionAmount(amount) {
+    const span = document.createElement('span')
+    span.classList.add('transaction-amount')
 
-const form = document.querySelector('form')
+    const formater = Intl.NumberFormat('pt-BR', {
+        compactDisplay: 'long',
+        currency: 'BRL',
+        style: 'currency'
+    })
+    const formatedAmount = formater.format(amount)
 
-form.addEventListener('submit', async (ev) => {
-    ev.preventDefault()
-
-    const transactionData = {
-        "name": document.querySelector('#name').value,
-        "value": document.querySelector('#value').value
+    if (amount > 0) {
+        span.textContent = `${formatedAmount} C`
+        span.classList.add('transaction-amount','credit')
+    } else {
+        span.textContent = `${formatedAmount} D`
+        span.classList.add('transaction-amount','debit')
     }
 
-    const transaction = await fetch('http://localhost:3000/transactions', {
-        method: 'POST',
-        headers: {
-            'ContentType': 'applications/json'
-        },
-        body: JSON.stringify(transactionData)
-    }).then(res => res.json()).catch(err => console.error(`Erro: ${err}`))
+    return span
+}
 
-    form.reset()
-    renderTranstion(transaction)
-    console.log(transaction)
-})
+function createEditTransactionBtn(transaction) {
+    const editBtn = document.createElement('button')
+    editBtn.classList.add('edit-btn')
+    editBtn.textContent = 'Editar'
+    editBtn.addEventListener('click', () => {
+        document.querySelector('#id').value = transaction.id
+        document.querySelector('#name').value = transaction.name
+        document.querySelector('#amount').value = transaction.amount
+    })
+
+    return editBtn
+}
+
+function createDeleteTransactionBtn(id) {
+    const deleteBtn = document.createElement('button')
+    deleteBtn.classList.add('delete-btn')
+    deleteBtn.textContent = 'Excluir'
+    deleteBtn.addEventListener('click', async () => {
+        await fetch(`http://localhost:3000/transactions/${id}`, { method: 'DELETE'})
+        deleteBtn.parentElement.remove() // remove o elemento pai => container
+        const indexToRemove = transactions.findIndex((t) => t.id === id)
+        transactions.splice(indexToRemove, 1)
+        updateBalance()
+    })
+
+    return deleteBtn
+}
+
+function renderTransaction (transaction) {
+    const container = createTransactionContainer(transaction.id)
+    const title = createTransactionTitle(transaction.name)
+    const amount = createTransactionAmount(transaction.amount)
+    const editBtn = createEditTransactionBtn(transaction)
+    const deleteBtn = createDeleteTransactionBtn(transaction.id)
+
+    container.append(title,amount, editBtn, deleteBtn)
+    document.querySelector('#transactions').append(container)
+}
+
+async function saveTransaction(ev) {
+    ev.preventDefault()
+
+    const id = document.querySelector('#id').value
+    const name = document.querySelector('#name').value
+    const amount = parseFloat(document.querySelector('#amount').value)
+
+    if(id) {
+        //editar a transação do id
+        const response = await fetch(`http://localhost:3000/transactions/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ name, amount }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+
+        const transaction = await response.json()
+        const indexToRemove = transactions.findIndex((t) => t.id === id)
+        transactions.splice(indexToRemove, 1, transaction)
+        document.querySelector(`#transaction-${id}`).remove()
+        renderTransaction(transaction)
+
+    } else {
+
+        //criar nova transação
+        const response = await fetch('http://localhost:3000/transactions', {
+            method: 'POST',
+            body: JSON.stringify({name, amount}),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+    
+        const transaction = await response.json()
+        transactions.push(transaction)
+        renderTransaction(transaction)
+    }
+
+    ev.target.reset()
+    updateBalance()
+}
+
+async function fetchTransactions() {
+    return await fetch('http://localhost:3000/transactions').then(res => res.json())
+}
+
+function updateBalance() {
+    const balanceSpan = document.querySelector('#balance')
+    const balance = transactions.reduce((sum, transactions) => sum + transactions.amount, 0)
+    const formater = Intl.NumberFormat('pt-BR', {
+        compactDisplay: 'long',
+        currency: 'BRL',
+        style: 'currency'
+    })
+
+    balanceSpan.textContent = formater.format(balance)
+}
+
+async function setup() {
+    const results = await fetchTransactions()
+    transactions.push(...results)
+    transactions.forEach(renderTransaction)
+    updateBalance()
+}
+
+document.addEventListener('DOMContentLoaded', setup)
+document.querySelector('form').addEventListener('submit', saveTransaction)
