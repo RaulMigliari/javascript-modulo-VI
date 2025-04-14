@@ -1,0 +1,24 @@
+{
+  "transactions": [
+    {
+      "id": 1,
+      "name": "Raul",
+      "value": 1000
+    },
+    {
+      "id": 2,
+      "name": "Matheus",
+      "value": 2000
+    },
+    {
+      "id": "d608",
+      "name": "Dudu",
+      "value": "1500"
+    },
+    {
+      "id": "b89c",
+      "name": "James",
+      "value": "3000"
+    }
+  ]
+}
